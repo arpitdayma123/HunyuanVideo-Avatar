@@ -11,7 +11,8 @@ ENV CPU_OFFLOAD=1
 ENV RUNPOD_STREAM_OUTPUT=true
 ENV DEBIAN_FRONTEND=noninteractive
 ENV HF_HOME=/app/huggingface_cache
-ENV MPLCONFIGDIR=/tmp/matplotlib # To prevent issues with matplotlib in headless env
+# To prevent issues with matplotlib in headless env
+ENV MPLCONFIGDIR=/tmp/matplotlib
 
 # Set working directory
 WORKDIR /app
