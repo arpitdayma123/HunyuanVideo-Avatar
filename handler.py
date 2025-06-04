@@ -38,7 +38,7 @@ def download_file(url, prefix):
         file_extension = os.path.splitext(url)[1]
         if not file_extension:
             file_extension = '.tmp'
-        
+
         # Create temp file in a specific directory if needed, default is fine for now
         temp_file = tempfile.NamedTemporaryFile(delete=False, prefix=prefix, suffix=file_extension, mode='wb')
         for chunk in response.iter_content(chunk_size=8192):
@@ -82,7 +82,7 @@ def handler(job):
         # Create a temporary directory for the output of this specific job
         output_dir = tempfile.mkdtemp(prefix=f"hva_output_{job_id}_")
         logger.info(f"Job {job_id}: Created temporary output directory: {output_dir}")
-        
+
         # Ensure inference_runner can find MODEL_BASE and CPU_OFFLOAD from the environment
         # No need to set them via os.environ here if they are already set in the Docker env.
         # inference_runner.py reads them directly.
@@ -129,7 +129,7 @@ def handler(job):
                 logger.info(f"Job {job_id}: Removed temporary image file: {temp_image_path}")
             except OSError as e_rm_img:
                 logger.warning(f"Job {job_id}: Could not remove temporary image file {temp_image_path}: {e_rm_img}")
-        
+
         if temp_audio_path and os.path.exists(temp_audio_path):
             try:
                 os.remove(temp_audio_path)
@@ -141,12 +141,12 @@ def handler(job):
 if __name__ == "__main__":
     # This block is for local testing. RunPod calls `handler` directly.
     logger.info("Starting RunPod handler for local testing...")
-    
+
     # Example of how you might test locally (requires actual URLs and models):
     # Ensure MODEL_BASE and CPU_OFFLOAD are set in your local environment if testing this way.
     # print(f"To test locally, ensure MODEL_BASE is set (currently: {MODEL_BASE_ENV})")
     # print(f"and necessary model files are present.")
-    
+
     # test_job_payload = {
     #     "id": "local_test_001",
     #     "input": {

@@ -130,7 +130,7 @@ def process_video_avatar_job(image_path: str, audio_path: str, output_base_path:
     #     align_instance_global = align_instance
     # else:
     #     align_instance = align_instance_global
-    
+
     # if feature_extractor_global is None:
     logger.info(f"Loading AutoFeatureExtractor from: {whisper_path}")
     feature_extractor = AutoFeatureExtractor.from_pretrained(str(whisper_path))
@@ -140,13 +140,13 @@ def process_video_avatar_job(image_path: str, audio_path: str, output_base_path:
 
     # --- 3. Prepare Data Batch (Replaces VideoAudioTextLoaderVal for single item) ---
     logger.info("Preparing data batch...")
-    
+
     # Get audio duration to determine number of frames
     # This logic might be part of VideoAudioTextLoaderVal or AudioPreprocessor
     # For now, let's simulate getting audio length.
     # AudioPreprocessor from the original repo might be useful here.
     audio_processor = AudioPreprocessor(sr=args.audio_sample_rate, n_fft=args.audio_n_fft, hop_length=args.audio_hop_length, target_fps=args.sample_fps) # Use sample_fps
-    
+
     try:
         # This is a simplified way to get num_frames. Original loader has more complex logic.
         # It might involve whisper to get features and then calculate length.
@@ -166,11 +166,11 @@ def process_video_avatar_job(image_path: str, audio_path: str, output_base_path:
         #   audio_feat, _, audio_len_sec = self.audio_preprocessor.process(audio_path, text="", sr=self.sr, target_fps=self.target_fps)
         #   audio_len = min(self.max_audio_len, int(audio_len_sec * self.target_fps)) # Number of video frames
         #   audio_latent_len = audio_len // self.temporal_compression_ratio # Number of latent frames for audio
-        
+
         # Let's try to replicate parts of VideoAudioTextLoaderVal logic for a single item
         audio_data = audio_processor.read_audio(audio_path, args.audio_sample_rate)
         duration_sec = len(audio_data) / args.audio_sample_rate
-        
+
         # audio_len here is number of video frames based on audio duration and target FPS for generation
         # This should match how `sample_n_frames` is used.
         # `args.sample_n_frames` is the max.
@@ -220,21 +220,21 @@ def process_video_avatar_job(image_path: str, audio_path: str, output_base_path:
     try:
         # `predict` will handle image alignment and audio feature extraction internally
         samples = hunyuan_video_sampler.predict(args, batch, wav2vec, feature_extractor, align_instance)
-        
+
         # samples['samples'] is the denoised latent, (bs, channels, num_latent_frames, h_latent, w_latent)
         # For video, channels=16 (from original code comment, but could be 4 for vae)
         # num_latent_frames = num_video_frames // temporal_compression_ratio
         # Example: sample = samples['samples'][0].unsqueeze(0) # (1, 16, t//4, h//8, w//8)
         # The pipeline should return decoded frames directly if possible, or VAE decode here.
         # The `HunyuanVideoSampler.predict` already does VAE decoding and returns pixel space video.
-        
+
         # samples['samples'] should be (bs, num_video_frames, H, W, C) in pixel space
         video_tensor = samples['samples'][0] # Get first item from batch, shape (num_video_frames, H, W, C)
         logger.info(f"Output video tensor shape: {video_tensor.shape}")
 
         # Ensure it's on CPU and converted to numpy uint8
         video_numpy = (video_tensor.data.cpu().numpy() * 255.).astype(np.uint8)
-        
+
     except Exception as e:
         logger.error(f"Error during inference for {job_id}: {e}")
         # Perform cleanup of models from GPU memory if possible
@@ -246,7 +246,7 @@ def process_video_avatar_job(image_path: str, audio_path: str, output_base_path:
     # --- 5. Save Output ---
     output_video_filename = f"{job_id}.mp4"
     output_video_path = output_dir / output_video_filename
-    
+
     # Temporary path for video without audio (if ffmpeg step is separate)
     temp_raw_video_path = output_dir / f"{job_id}_raw.mp4"
 
@@ -288,36 +288,7 @@ def process_video_avatar_job(image_path: str, audio_path: str, output_base_path:
     del hunyuan_video_sampler, wav2vec, align_instance, feature_extractor, samples, video_tensor, video_numpy, batch
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-    
+
     logger.info(f"Video generation for {job_id} completed. Output: {output_video_path}")
     return str(output_video_path)
-
-# Note: No if __name__ == "__main__": block as this will be imported.
-# Example usage (for testing, would be in a separate file):
-# if __name__ == '__main__':
-#     # This requires dummy image and audio files, and MODEL_BASE to be set.
-#     # Create dummy files for testing
-#     os.makedirs("./tmp_test_data/output", exist_ok=True)
-#     with open("./tmp_test_data/dummy.jpg", "w") as f: f.write("dummy image") # Replace with actual image
-#     with open("./tmp_test_data/dummy.wav", "w") as f: f.write("dummy audio") # Replace with actual audio
-    
-#     # export MODEL_BASE=/path/to/your/weights
-#     if not os.environ.get("MODEL_BASE"):
-#         print("Error: MODEL_BASE environment variable is not set. Please set it to your weights directory.")
-#     else:
-#         try:
-#             video_path = process_video_avatar_job(
-#                 image_path="./tmp_test_data/dummy.jpg", # Provide a real image path
-#                 audio_path="./tmp_test_data/dummy.wav", # Provide a real audio path
-#                 output_base_path="./tmp_test_data/output",
-#                 job_id="test_job_001"
-#             )
-#             print(f"Test job completed. Video saved to: {video_path}")
-#         except Exception as e:
-#             print(f"Test job failed: {e}")
-#         finally:
-#             # Clean up dummy files
-#             # os.remove("./tmp_test_data/dummy.jpg")
-#             # os.remove("./tmp_test_data/dummy.wav")
-#             pass
 ```
