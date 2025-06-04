@@ -82,38 +82,6 @@ def create_demo():
                 outputs=[output_image],
             )
             
-            # quick_prompts = [[x] for x in glob.glob('./assets/images/*.png')]
-            # example_quick_prompts = gr.Dataset(samples=quick_prompts, label='Other object', samples_per_page=1000, components=[id_image])
-            # example_quick_prompts.click(lambda x: x[0], inputs=example_quick_prompts, outputs=id_image, show_progress=False, queue=False)
-            # with gr.Row(), gr.Column():
-            #     gr.Markdown("## Examples")
-            #     example_inps = [
-            #         [
-            #             'A woman is drinking coffee at a café.',
-            #             './assets/images/seg_woman_01.png',
-            #             1280, 720, 30, 129, 7.5, 13, 1024,
-            #             "assets/videos/seg_woman_01.mp4"
-            #         ],
-            #         [
-            #             'In a cubicle of an office building, a woman focuses intently on the computer screen, typing rapidly on the keyboard, surrounded by piles of documents.',
-            #             './assets/images/seg_woman_03.png',
-            #             1280, 720, 30, 129, 7.5, 13, 1025,
-            #             "./assets/videos/seg_woman_03.mp4"
-            #         ],
-            #         [
-            #             'A man walks across an ancient stone bridge holding an umbrella, raindrops tapping against it.',
-            #             './assets/images/seg_man_01.png',
-            #             1280, 720, 30, 129, 7.5, 13, 1025,
-            #             "./assets/videos/seg_man_01.mp4"
-            #         ],
-            #         [
-            #             'During a train journey, a man admires the changing scenery through the window.',
-            #             './assets/images/seg_man_02.png',
-            #             1280, 720, 30, 129, 7.5, 13, 1026,
-            #             "./assets/videos/seg_man_02.mp4"
-            #         ]
-            #     ]
-            #     gr.Examples(examples=example_inps, inputs=[prompt, id_image, width, height, num_steps, num_frames, guidance, flow_shift, seed, output_image],)
     return demo
 
 if __name__ == "__main__":
